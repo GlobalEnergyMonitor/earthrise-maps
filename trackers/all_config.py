@@ -6,9 +6,9 @@ from numpy import true_divide
 from creds import client_secret
 
 # trackers_to_update = ['Plumes']
-# trackers_to_update = ['Bioenergy Plants']
+# trackers_to_update = ['Bioenergy']
 # trackers_to_update = ['Oil & Gas Plants'] # egt and agt and latam and then oct aet too 
-trackers_to_update = ['Coal Plants']
+trackers_to_update = ['Oil & Gas Extraction']
 # trackers_to_update = ['Coal Terminals']
 tracker_folder_path = '/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/gem-tracker-maps/trackers/'
 goget_orig_file = '/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/testing/source/Global Oil and Gas Extraction Tracker - 2024-03-08_1205 DATA TEAM COPY.xlsx'
@@ -19,8 +19,8 @@ data_filtering = True
 
 #### CREATE ####
 map_create = True # work on subnat
-dwlnd_create = True
-about_create = True # read api error
+dwlnd_create = False
+about_create = False # read api error
 # summary_create = False
 
 #### TEST #####
@@ -29,15 +29,20 @@ run_post_tests = True
 map_to_test = '' # change if testing a single map not a regional one
 
 #### REFINE ####
-refine = True 
+refine = False 
 local_copy = False  # TODO issue when not local for refining! # no local_pkl/europe_Oil & Gas Plants_gdf_2024-12-12.pkl' file!
-final_formatting = True
+final_formatting = False
 
 # CAN CHANGE IN MULTI SCRIPT IF PRI EXISTS GOOD IF ONLY REFINING 
-# priority = ['']
+priority = ['']
 # Get today's date
 today_date = datetime.today()
 
+region_key = '1yaKdLauJ2n1FLSeqPsYNxZiuF5jBngIrQOIi9fXysAw'
+region_tab = ['mapping']
+
+centroid_key = '1ETg632Bkwnr96YQbtmDwyWDpSHqmg5He0GQwJjJz8IU'
+centroid_tab = ['centroids']
 # Format the date in ISO format
 iso_today_date = today_date.isoformat().split('T')[0]
 iso_today_date_folder = f'{iso_today_date}/'
@@ -97,7 +102,7 @@ renaming_cols_dict = {'GOGPT': {'GEM location ID':'pid', 'GEM unit ID': 'id','Wi
                       
                       'GCTT': {'GEM Terminal ID':'id', 'GEM Unit/Phase ID': 'unit_id','Coal Terminal Name': 'name', 'Coal Terminal Name (detail or other)': 'other_name','Parent Port Name': 'port','Wiki URL': 'url', 'Status': 'status', 'Owner': 'owner', 'Capacity (Mt)':'capacity',
                                'Start Year': 'start_year', 'Region': 'region', 'State/Province':'subnat', 'Country/Area': 'areas'},
-                      'GOGET': {'Unit ID':'id', 'Wiki name': 'name', 'Country': 'areas', 'Subnational unit (province, state)': 'subnat', 'Status': 'status', 'Discovery year': 'start_year', 'Production start year': 'prod_start_year',
+                      'GOGET': {'Unit ID':'id', 'Wiki name': 'name', 'Country/Area': 'areas', 'Subnational unit (province, state)': 'subnat', 'Status': 'status', 'Discovery year': 'start_year', 'Production start year': 'prod_start_year',
                                 'GEM region': 'region','Owner': 'owner', 'Parent': 'parent', 'Wiki URL': 'url', 'Production - Oil (Million bbl/y)': 'prod_oil', 'Production - Gas (Million m³/y)': 'prod_gas',
                                 'Production - Total (Oil, Gas and Hydrocarbons) (Million boe/y)': 'capacity','Production Year - Oil': 'prod_year_oil', 'Production Year - Gas': 'prod_year_gas'
                                 , 'Country List':'mult_countries', 'Fuel type': 'fuel'},
@@ -176,14 +181,13 @@ tracker_to_legendname = {
 # TODO ideally get this from map log gsheet
 # DO THIS NOW TODO so that aet and gipt look done and latam still needs to do
 # trackers_to_update = ['Coal Plants', 'Nuclear', 'Oil & Gas Plants'] # ['Coal Plants', 'Nuclear', 'Oil & Gas Plants']
-new_release_date = 'January 2024' # get from spreadsheet I manage 15l2fcUBADkNVHw-Gld_kk7EaMiFFi8ysWt6aXVW26n8
-previous_release_date = 'November 2024'
+new_release_date = 'February 2025' # get from spreadsheet I manage 15l2fcUBADkNVHw-Gld_kk7EaMiFFi8ysWt6aXVW26n8
+previous_release_date = 'January 2024'
 # previous_release = 'data/Africa-Energy-Tracker-data-July-2024.xlsx' # key 1B8fwCQZ3ZMCf7ZjQPqETKNeyFN0uNFZMFWw532jv480
 # previous_map = 'data/africa_energy_tracker_2024-07-10.geojson' 
-prev_key_dict = {'africa': '128rAsbENoUzzKJAv1V0Z3AuCc6kNanCclKJVGkSOmhM', 'latam': '128rAsbENoUzzKJAv1V0Z3AuCc6kNanCclKJVGkSOmhM', 'asia': '1q_Zwn_FlLulFvyJPi2pAjJOR7inDvo5nvIlQuZKAwrs', 'europe': '1IYM9SPoq2xSu4dr3H2sXXwuKKvb505FHG6vZKRAV_DE', 'GIPT': '1SZVpnXQ1iE5kJJfmAZQ64q9LaG4wfq4urVX7jdBmIlk'} # ideally pull this from the results tabs in the map log sheet
+prev_key_dict = {'africa': '128rAsbENoUzzKJAv1V0Z3AuCc6kNanCclKJVGkSOmhM', 'latam': '1ZKY-jSs2vxXSq5dLkp6-qGbhaxhz9Sh9Xo50ZG3LG7Q', 'asia': '1q_Zwn_FlLulFvyJPi2pAjJOR7inDvo5nvIlQuZKAwrs', 'europe': '1IYM9SPoq2xSu4dr3H2sXXwuKKvb505FHG6vZKRAV_DE', 'GIPT': '1SZVpnXQ1iE5kJJfmAZQ64q9LaG4wfq4urVX7jdBmIlk'} # ideally pull this from the results tabs in the map log sheet
 # also TODO ideally save new release data file of map to gsheets and put htat link in the results tab
-# prev_key = '1B8fwCQZ3ZMCf7ZjQPqETKNeyFN0uNFZMFWw532jv480'
-
+# if in colab could save to tracker release and update this dict automatically
 # print('Handle multi tracker map creation for more than just AET')
 
 multi_tracker_log_sheet_key = '15l2fcUBADkNVHw-Gld_kk7EaMiFFi8ysWt6aXVW26n8'
@@ -499,13 +503,55 @@ europe_countries = [
 
 
 
+
 latam_countries = [
-    'Argentina', 'Bahamas', 'Barbados', 'Belize', 'Bolivia',
-    'Brazil', 'Chile', 'Colombia', 'Costa Rica', 'Cuba',
-    'Dominican Republic', 'Ecuador', 'El Salvador', 'French Guiana', 'Grenada',
-    'Guadeloupe', 'Guatemala', 'Guyana', 'Haiti', 'Honduras', 
-    'Jamaica', 'Mexico', 'Nicaragua', 'Panama', 'Paraguay',
-    'Peru', 'Suriname', 'Trinidad and Tobago', 'Uruguay', 'Venezuela'
-]
-
-
+    "Anguilla",
+    "Antigua and Barbuda",
+    "Argentina",
+    "Aruba",
+    "Bahamas",
+    "Barbados",
+    "Belize",
+    "Bolivia",
+    "Bonaire, Sint Eustatius, and Saba",
+    "Bouvet Island",
+    "Brazil",
+    "Cayman Islands",
+    "Chile",
+    "Colombia",
+    "Costa Rica",
+    "Cuba",
+    "Curaçao",
+    "Dominica",
+    "Dominican Republic",
+    "Ecuador",
+    "El Salvador",
+    "Falkland Islands",
+    "French Guiana",
+    "Grenada",
+    "Guadeloupe",
+    "Guatemala",
+    "Guyana",
+    "Haiti",
+    "Honduras",
+    "Jamaica",
+    "Martinique",
+    "Mexico",
+    "Montserrat",
+    "Nicaragua",
+    "Panama",
+    "Paraguay",
+    "Peru",
+    "Saint Barthélemy",
+    "Saint Kitts and Nevis",
+    "Saint Lucia",
+    "Saint Martin (French part)",
+    "Saint Vincent and the Grenadines",
+    "Sint Maarten (Dutch part)",
+    "South Georgia and the South Sandwich Islands",
+    "Suriname",
+    "Trinidad and Tobago",
+    "Turks and Caicos Islands",
+    "Uruguay",
+    "Venezuela",
+    "Virgin Islands (British)"]

@@ -180,7 +180,7 @@ table.dataTable td {
     #expand-sidebar {
         display: block;
     }
-    #collapse-sidebar, #filter-form, #all-select {
+    #collapse-sidebar, #filter-form, #all-select #all-select-section-level{
         display: none;
     }
     .navbar {
@@ -566,6 +566,14 @@ table.dataTable td {
     border-color: #656161 transparent transparent transparent;
 }
 
+#all-select-section-level{
+    /* lower opacity and smaller size */
+    opacity:.7;
+    font-size: 11px;
+    text-transform: lowercase;
+    /*add some more padding around the text */
+    padding: 8px 8px;
+}
 
 /* // from database */
 

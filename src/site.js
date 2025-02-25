@@ -690,19 +690,21 @@ function addEvents() {
     });
 
     $('#reset-all-button').on("click", function() {
-        enableResetAll();
+        enableResetAll(); // change this so it only clears search not all filtering of legend
     });
 
 
     $('#collapse-sidebar').on("click", function() {
         $('#filter-form').hide();
         $('#all-select').hide();
+        $('#all-select-section-level').hide();
         $('#collapse-sidebar').hide();
         $('#expand-sidebar').show();
     });
     $('#expand-sidebar').on("click", function() {
         $('#filter-form').show();
         $('#all-select').show();
+        $('#all-select-section-level').show();
         $('#collapse-sidebar').show();
         $('#expand-sidebar').hide();
     });
@@ -739,22 +741,28 @@ function buildFilters() {
         if (config.showToolTip){
             // create more space for europe legend
             if (filter.primary && filter.field_hover_text){
-                $('#filter-form').append('<h7 class="card-title">' + (filter.label || filter.field.replaceAll("_"," ")) + '<div class="infobox" id="infobox"><span>i</span><div class="tooltip" id="tooltip">' + filter.field_hover_text + '</div></div></h7>');
-    // add eventlistener for infobox and tooltip to show on hover
+            $('#filter-form').append('<h7 class="card-title">' + (filter.label || filter.field.replaceAll("_"," ")) + 
+            '<div class="infobox" id="infobox"><span>i</span><div class="tooltip" id="tooltip">' + filter.field_hover_text + 
+            '</div></div></h7> <div class="col-12 text-left small" id="all-select-section-level"><a href="" onclick="selectAllFilterSection(\'' + filter.field + '\'); return false;">select all section</a> | <a href="" onclick="clearAllFilterSection(\'' + filter.field + '\'); return false;">clear all section</a></div>');
+        // add eventlistener for infobox and tooltip to show on hover
 
             }
             else if (filter.field_hover_text){
-                $('#filter-form').append('<hr /><h7 class="card-title">' + (filter.label || filter.field.replaceAll("_"," ")) + '<div class="infobox" id="infobox"><span>i</span><div class="tooltip" id="tooltip">' + filter.field_hover_text + '</div></div></h7>');
+            $('#filter-form').append('<hr /><h7 class="card-title">' + (filter.label || filter.field.replaceAll("_"," ")) + '<div class="infobox" id="infobox"><span>i</span><div class="tooltip" id="tooltip">' + filter.field_hover_text + 
+            '</div></div></h7> <div class="col-12 text-left small" id="all-select-section-level"><a href="" onclick="selectAllFilterSection(\'' + filter.field + '\'); return false;">select all section</a> | <a href="" onclick="clearAllFilterSection(\'' + filter.field + '\'); return false;">clear all section</a></div>');
 
             }
             else {
             // do same as below but append infobox
-            $('#filter-form').append('<hr /><h7 class="card-title">' + (filter.label || filter.field.replaceAll("_"," ")) + '</h7>');
+            $('#filter-form').append('<hr /><h7 class="card-title">' + (filter.label || filter.field.replaceAll("_"," ")) + 
+            '</div></div></h7> <div class="col-12 text-left small" id="all-select-section-level"><a href="" onclick="selectAllFilterSection(\'' + filter.field + '\'); return false;">select all section</a> | <a href="" onclick="clearAllFilterSection(\'' + filter.field + '\'); return false;">clear all section</a></div>');
             }
 
         }
+        // this creates the section title and adds the select all feature only to the sections after the first one, if there is no tooltip logic so for all non europe maps
         else if (config.color.field != filter.field) {
-            $('#filter-form').append('<hr /><h7 class="card-title">' + (filter.label || filter.field.replaceAll("_"," ")) + '</h7>');
+            $('#filter-form').append('<hr /><h7 class="card-title">' + (filter.label || filter.field.replaceAll("_"," ")) + 
+            '</div></div></h7> <div class="col-12 text-left small" id="all-select-section-level"><a href="" onclick="selectAllFilterSection(\'' + filter.field + '\'); return false;">select all section</a> | <a href="" onclick="clearAllFilterSection(\'' + filter.field + '\'); return false;">clear all section</a></div>');
         }
 
         for (let i=0; i<filter.values.length; i++) {
@@ -765,10 +773,6 @@ function buildFilters() {
             check += (config.color.field == filter.field ? '<span class="legend-dot" style="background-color:' + config.color.values[ filter.values[i] ] + '"></span>' : "");
             check +=  `<span id='${check_id}-label'>` + ('values_labels' in filter ? filter.values_labels[i] : filter.values[i].replaceAll("_", " ")) + '</span></div>';
             check += '<div class="col-3 text-end" style="text-align: right;" id="' + check_id + '-count">' + config.filterCount[filter.field][filter.values[i]] + '</div></div>';
-            // if we want hover text unique on filter's value not just filter title
-            // if (filter.values_hover_text && filter.values_hover_text[i]) {
-            //     check += `<div class="info-box" id="infoBox-${check_id}"><span class="info-icon">i</span><div class="tooltip" id="tooltip-${check_id}">${filter.values_hover_text[i]}</div></div>`;
-            // }
             $('#filter-form').append(check);
         }
     // add eventlistener for infobox and tooltip to show on hover 
@@ -822,6 +826,8 @@ function buildFilters() {
 function toggleFilter(id) {
     $('#' + id + '-checkmark').toggleClass('checkmark uncheckmark');
 }
+// for legend level select all and clear all
+
 function selectAllFilter() {
     $('.filter-row').each(function() {
         if (! $('#' + this.dataset.checkid)[0].checked) {
@@ -836,7 +842,25 @@ function selectAllFilter() {
     filterData();
 
 }
-function clearAllFilter() {
+// for section level select all and clear all
+// needs to know field name to distinguish which filter rows to clear and what not to
+function selectAllFilterSection(fieldRow) {
+    $('.filter-row').each(function() {
+        let rowFieldName = this.dataset.checkid.split('_')[0];
+        if (rowFieldName === fieldRow && !$('#' + this.dataset.checkid)[0].checked) {
+            $('#' + this.dataset.checkid)[0].checked = true;
+            toggleFilter(this.dataset.checkid);
+        }
+    });
+
+    $('#spinner-container-filter').removeClass('d-none')
+    $('#spinner-container-filter').addClass('d-flex')
+
+    filterData();
+}
+// for legend level select all and clear all
+
+function clearAllFilter(fieldRow) {
     $('.filter-row').each(function() {
         if ($('#' + this.dataset.checkid)[0].checked) {
             $('#' + this.dataset.checkid)[0].checked = false;
@@ -846,6 +870,20 @@ function clearAllFilter() {
     filterData();
 
 }
+
+// for section level select all and clear all
+function clearAllFilterSection(fieldRow) {
+    $('.filter-row').each(function() {
+        let rowFieldName = this.dataset.checkid.split('_')[0];
+        if (rowFieldName === fieldRow && $('#' + this.dataset.checkid)[0].checked) {
+            $('#' + this.dataset.checkid)[0].checked = false;
+            toggleFilter(this.dataset.checkid);
+        }
+    });
+    filterData();
+
+}
+
 function countFilteredFeatures() {
     config.filterCount = {};
     config.filters.forEach(filter => {
@@ -1257,7 +1295,7 @@ function displayDetails(features) {
             // console.log(features[0].properties[detail])
             // if (features[0].properties[detail] != '' &&  features[0].properties[detail] != NaN && features[0].properties[detail] != null && features[0].properties[detail] != 'Unknown [unknown %]'){
                 // if (config.multiCountry == true && config.detailView[detail]['label'].includes('Country')){
-            if (features[0].properties[detail] != '' && features[0].properties[detail] != NaN && features[0].properties[detail] != null && features[0].properties[detail] != 'Unknown [unknown %]') {
+            if (features[0].properties[detail] != '' && features[0].properties[detail] != 'undefined' && features[0].properties[detail] != NaN && features[0].properties[detail] != null && features[0].properties[detail] != 'Unknown [unknown %]') {
                 if (config.multiCountry == true && config.detailView[detail] && config.detailView[detail]['label'] && config.detailView[detail]['label'].includes('Country')) {
                     detail_text += '<span class="fw-bold">' + config.detailView[detail]['label'] + '</span>: ' + removeLastComma(features[0].properties[detail]) + '<br/>';
                 }
@@ -1350,7 +1388,10 @@ function displayDetails(features) {
         }
     }
     else {
-        detail_text += '';
+        // add status part not capacity part 
+        detail_text += '<span class="fw-bold text-capitalize">Status</span>: ' +
+        '<span class="legend-dot" style="background-color:' + config.color.values[ features[0].properties[config.statusDisplayField] ] + '"></span><span class="text-capitalize">' + features[0].properties[config.statusDisplayField] + '</span><br/>';
+        // detail_text += '';
     }
     //Location by azizah from <a href="https://thenounproject.com/browse/icons/term/location/" target="_blank" title="Location Icons">Noun Project</a> (CC BY 3.0)
     //Arrow Back by Nursila from <a href="https://thenounproject.com/browse/icons/term/arrow-back/" target="_blank" title="Arrow Back Icons">Noun Project</a> (CC BY 3.0)
@@ -1561,13 +1602,14 @@ function enableResetAll() {
     config.selectedSearchFields = allSearchFields.join(',');
     $('#selectedSearchLabel').text("all");
 
+    // this removes the functionality that was clearing all filters when you only wnat to clear the search box
     // clear legend by checking checked boxes DONE! 
-    $('.filter-row').each(function() {
-        if (! $('#' + this.dataset.checkid)[0].checked) {
-            $('#' + this.dataset.checkid)[0].checked = true;
-            toggleFilter(this.dataset.checkid);
-        }
-    }); 
+    // $('.filter-row').each(function() {
+    //     if (! $('#' + this.dataset.checkid)[0].checked) {
+    //         $('#' + this.dataset.checkid)[0].checked = true;
+    //         toggleFilter(this.dataset.checkid);
+    //     }
+    // }); 
 
     // start the spinner
     $('#spinner-container-filter').removeClass('d-none')

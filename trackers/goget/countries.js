@@ -2,6 +2,7 @@
   "Africa": [
     "Algeria",
     "Angola",
+    "Angola-Republic of the Congo",
     "Benin",
     "Botswana",
     "British Indian Ocean Territory",
@@ -41,6 +42,7 @@
     "Namibia",
     "Niger",
     "Nigeria",
+    "Republic of the Congo",
     "Réunion",
     "Rwanda",
     "Saint Helena, Ascension, and Tristan da Cunha",
@@ -270,6 +272,7 @@
     "Tuvalu",
     "United States Minor Outlying Islands",
     "Vanuatu",
+    "Venezuela-Trinidad and Tobago",
     "Wallis and Futuna"
   ]
 }

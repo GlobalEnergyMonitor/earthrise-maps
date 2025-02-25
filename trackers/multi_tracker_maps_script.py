@@ -61,7 +61,6 @@ def what_maps_are_needed_new(multi_tracker_log_sheet_key, map_tab):
     print("DataFrame have been saved to map_tab_df.pkl")
 
     print("Now go through and create the needed tracker dict based on new data in trackers to update.")
-    map_tab_df_copy = map_tab_df.copy()
     for tracker in trackers_to_update:
         for row in map_tab_df.index:
             # use the tracker to filter the map_tab_df df for only rows that contain the tracker in source column
@@ -122,10 +121,13 @@ def what_maps_are_needed(multi_tracker_log_sheet_key, multi_tracker_log_sheet_ta
     
     print("Now go through and create the needed tracker dict based on new data in trackers to update.")
     for tracker in trackers_to_update:
+        print(map_log_df)
         # filter out the map tracker tab df 
         # so that we only have the row that matches the tracker to be updated
         # and also find the tracker names for the map to be updated beyond the new tracker data but existing tracker data as well
         map_log_df_sel = map_log_df[map_log_df['official release tab name'] == tracker]
+        print(map_log_df_sel)
+        input('check that it is gogets offiical name')
         for col in map_log_df_sel.columns:
             if 'yes' in map_log_df_sel[col].values:
                 map_log_df_map_sel = map_log_df[map_log_df[col] == 'yes']
@@ -1590,9 +1592,6 @@ def gather_all_about_pages(prev_key_dict, prep_df, new_release_date, previous_re
     for mapname, list_of_dfs_trackers_geo_prev_info in needed_tracker_geo_by_map.items():
         if mapname == 'Global':
             print('skip this')
-        
-      
-            
         else:
             if local_copy:
 
@@ -1919,7 +1918,8 @@ def reorder_dwld_file_tabs(incorporated_dict_list_dfs_by_map):
     if local_copy:
         if priority != ['']:
             for mapname in priority:
-                    
+                path_for_download_and_map_files_reordered = gem_path + mapname + '/compilation_output/' + f'{new_release_date}_reordered/'
+                os.makedirs(path_for_download_and_map_files_reordered, exist_ok=True)
                 path_for_download_and_map_files = gem_path + mapname + '/compilation_output/' 
                 if final_formatting:
                     path_for_download_and_map_files = f'{path_for_download_and_map_files}final{new_release_date}/'
@@ -1928,17 +1928,19 @@ def reorder_dwld_file_tabs(incorporated_dict_list_dfs_by_map):
                     if file.endswith(".xlsx") and mapname in file and (new_release_date in file or previous_release_date in file) and ('download' in file): 
                         print(f'{path_for_download_and_map_files}{file}')
                         dd_df_dict = pd.read_excel(f'{path_for_download_and_map_files}{file}', sheet_name=None, engine='openpyxl') # TODO rework so it pulls all tabs
+                        input('look at download file')
                         
                     elif file.endswith(".xlsx") and mapname in file and (new_release_date in file or previous_release_date in file) and ('about' in file): 
                         print(f'{path_for_download_and_map_files}{file}')
                         about_df_dict = pd.read_excel(f'{path_for_download_and_map_files}{file}', sheet_name=None , engine='openpyxl')  # TODO rework so it pulls all tabs
-                            
+                        input('look at about file should be 15 tabs for africa latam')
+
                 print(f'Length of {mapname} dd: {len(dd_df_dict)}')    
                 print(f'Length of {mapname} about: {len(about_df_dict)}')
 
                 input('check length of about dict')
                 
-                output = f'{path_for_download_and_map_files}{mapname}-energy-tracker-data-download-with-about {new_release_date}.xlsx'        
+                output = f'{path_for_download_and_map_files_reordered}{mapname}-energy-tracker-data-download-with-about {new_release_date}.xlsx'        
                 testing_output = f'/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/testing/final/{mapname}-energy-tracker-data-download-with-about {new_release_date}.xlsx'        
                 final_order = {}
                 for filename in [output, testing_output]:
@@ -1965,7 +1967,9 @@ def reorder_dwld_file_tabs(incorporated_dict_list_dfs_by_map):
                             
         else:
             for mapname in ['africa', 'asia', 'europe', 'LATAM']:
-                path_for_download_and_map_files = gem_path + mapname + '/compilation_output/' 
+                path_for_download_and_map_files_reordered = gem_path + mapname + '/compilation_output/' + f'{new_release_date}_reordered/'
+                path_for_download_and_map_files = gem_path + mapname + '/compilation_output/'    
+                os.makedirs(path_for_download_and_map_files_reordered, exist_ok=True)
 
                 for file in os.listdir(path_for_download_and_map_files): # use key for map name
                     # print(path_for_download_and_map_files)
@@ -1984,7 +1988,7 @@ def reorder_dwld_file_tabs(incorporated_dict_list_dfs_by_map):
                 print(about_df_dict.keys())  
                 ##(input('check above keys should be tabs not column headers now')
                 #new info
-                output = f'{path_for_download_and_map_files}{mapname}-energy-tracker-data-download-with-about {new_release_date}.xlsx'        
+                output = f'{path_for_download_and_map_files_reordered}/{mapname}-energy-tracker-data-download-with-about {new_release_date}.xlsx'        
                 testing_output = f'/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/testing/final/{mapname}-energy-tracker-data-download-with-about {new_release_date}.xlsx'        
                 final_order = {}
                 for filename in [output, testing_output]:
@@ -2019,7 +2023,10 @@ def reorder_dwld_file_tabs(incorporated_dict_list_dfs_by_map):
             # print(f'This is map_df_dict: {map_df_dict}') # map_df_dict is a list
             # input('check out map_df_dict list of dfs?')
             path_for_download_and_map_files = gem_path + mapname + '/compilation_output/' 
-            output = f'{path_for_download_and_map_files}{mapname}-energy-tracker-data-download-with-about {new_release_date}.xlsx'        
+            path_for_download_and_map_files_reordered = gem_path + mapname + '/compilation_output/' + f'{new_release_date}_reordered/'
+            os.makedirs(path_for_download_and_map_files_reordered, exist_ok=True)
+
+            output = f'{path_for_download_and_map_files_reordered}{mapname}-energy-tracker-data-download-with-about {new_release_date}.xlsx'        
             # establish about_df_dict_by_map 
             # if about file in the mapname folder use it, even if not local:
 
@@ -2035,6 +2042,7 @@ def reorder_dwld_file_tabs(incorporated_dict_list_dfs_by_map):
             #     print(need to feed in about pages, will create stub ones for now)
                 
                 else: 
+                    input(f'creating stubb page for {mapname}')
                     # key is sheet name value is data for about page
                     stubb_about_data = stubb_file
                     # cycle thorugh all trackers in map
@@ -2095,22 +2103,6 @@ def reorder_dwld_file_tabs(incorporated_dict_list_dfs_by_map):
                                 # break
                     print(final_order)
                     (input('check final order'))
-
-                    # with pd.ExcelWriter(output, engine='xlsxwriter') as writer:
-                    #     print(output)
-
-                    #     for trackername, about_tabular_tuple in final_order.items():
-                    #         print(f'about_tabular_tuple:')
-                    #         # print(about_tabular_tuple[0]) b
-                    #         print(about_tabular_tuple)
-                    #         print(f'About page for {trackername} has {len(about_tabular_tuple[0])} rows.')
-                    #         print(f'tabular for {trackername} has {len(about_tabular_tuple[1])} rows.')
-                    #         print(type(about_tabular_tuple[0]))
-                    #         print(type(about_tabular_tuple[1]))
-
-                    #         # about_tabular_tuple[0].to_excel(writer, sheet_name=f'About {trackername}', index=False)   
-                                        
-                    #         # about_tabular_tuple[1].to_excel(writer, sheet_name=f'{trackername}', index=False)   
 
     return final_order
 
@@ -2611,10 +2603,10 @@ if data_filtering: # this creates gdfs and dfs for all filtered datasets per map
     end_time = time.time()  # Record the end time
     elapsed_time = end_time - start_time  # Calculate the elapsed time
     print('Start data filtering')
-    prep_df = create_prep_file(multi_tracker_log_sheet_key, source_data_tab) 
+    prep_df = create_prep_file(multi_tracker_log_sheet_key, source_data_tab)  # so we are using source, so can delete prep file
     conversion_df = create_conversion_df(conversion_key, conversion_tab)
     
-    priority = ['latam', 'africa'] # ['africa', 'asia', 'europe', 'latam']
+    # priority = ['latam', 'africa'] # ['africa', 'asia', 'europe', 'latam']
     to_pass = []
     if priority != ['']:
         for key, value in needed_tracker_geo_by_map.items():
@@ -2679,18 +2671,18 @@ if dwlnd_create: # this creates and saves the tabular data sheets for the data d
 
 if about_create: # this creates and saves a preliminary file with all about pages no adjustments made
     end_time = time.time()  # Record the end time
-    elapsed_time = end_time - start_time  # Calculate the elapsed time
+    elapsed_time = end_time - start_time 
     print('Start about creation')
     about_df_dict_by_map = gather_all_about_pages(prev_key_dict, prep_df, new_release_date, previous_release_date, needed_tracker_geo_by_map)
     create_about_page_file(about_df_dict_by_map)
     end_time = time.time()  # Record the end time
-    elapsed_time = end_time - start_time  # Calculate the elapsed time
+    elapsed_time = end_time - start_time  
     print(f'End about creation {elapsed_time}')
 
    
 if refine: # this reorders the data download file
-    end_time = time.time()  # Record the end time
-    elapsed_time = end_time - start_time  # Calculate the elapsed time
+    end_time = time.time()  
+    elapsed_time = end_time - start_time  
     print('Start refining')
     if local_copy:
         about_df_dict_by_map = ''
@@ -2742,10 +2734,6 @@ def from_orig_pkl_to_tuple_list():
     # print(list_of_dfs_dd)
     # input('check list of dfs for dd in discrepancies[f'{tracker}{mapname}']')     
     for item in list_of_dfs_map:
-        # print(f'this is item in list_of_dfs_map:')
-        # print(item)
-        # print(f'this is tracker-acro column in item:')
-        # print(item['tracker-acro'])
         # TODO look into issue
         # I think it has to do with using orig pkl not other pkl
         # input('Check above, got error saying reitred retired plus when should not have been that for tracker')
@@ -2926,10 +2914,10 @@ def robust_tests_dd():
                     print(f'DD Data {tracker_acro}: {len(dd_df)}')
                                             
                         
-                    # df = df[df['areas'].isin(needed_geo)]
-                    # for column in dd_df.columns:
-                    #     print(column)
-                    # input('is id in there?')
+                    df = df[df['areas'].isin(needed_geo)]
+                    for column in dd_df.columns:
+                        print(column)
+                    input('is id in there?')
                     if tracker_acro == 'GGIT-eu':
                         pass
                     else:
@@ -3067,7 +3055,7 @@ def robust_tests_dd():
                 if tracker_acro == 'GGIT-eu':
                     pass
                 else:            
-                    df_missing_dd = df[~df['id'].isin(dd_df['id'])]
+                    df_missing_dd = df[~df['id'].isin(dd_df['id'])] # TODO FEB 7th error no id ... 
                     df_missing_dd_reverse = dd_df[~dd_df['id'].isin(df['id'])]
 
                     print(f'DD Discrepancy Count for {mapname}')

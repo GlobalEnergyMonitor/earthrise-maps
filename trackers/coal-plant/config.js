@@ -17,7 +17,6 @@ var config = {
             'shelved': 'grey'
         }
     },
-
     /* define the column and values used for the filter UI. There can be multiple filters listed. 
       Additionally a custom `label` can be defined (default is the field), 
       and `values_label` (an array matching elements in `values`)

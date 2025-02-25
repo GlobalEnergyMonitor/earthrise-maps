@@ -122,40 +122,55 @@ def gspread_access_file_read_only(key, tab_list):
         # authorized_user_filename=json_token_name,
     )
     list_of_dfs = []
-       # # add in an exponential backoff 
+    if 'Production & reserves' in tab_list:
+        for tab in tab_list:
+            if tab == 'Main data':
+                gsheets = gspread_creds.open_by_key(key)
+                spreadsheet = gsheets.worksheet(tab)
+                main_df = pd.DataFrame(spreadsheet.get_all_records(expected_headers=[]))
+                print(main_df.info())
+            elif tab == 'Production & reserves':
+                gsheets = gspread_creds.open_by_key(key)
+                spreadsheet = gsheets.worksheet(tab)
+                prod_df = pd.DataFrame(spreadsheet.get_all_records(expected_headers=[]))
+                print(prod_df.info())
+        df = process_goget_reserve_prod_data(main_df, prod_df)
 
-    for tab in tab_list:
-        if tab == gcmt_closed_tab:
-            # print(tab)
-            wait_time = 5
-            time.sleep(wait_time)
-            gsheets = gspread_creds.open_by_key(key)
-            # Access a specific tab
-            spreadsheet = gsheets.worksheet(tab)
 
-            df = pd.DataFrame(spreadsheet.get_all_records(expected_headers=[]))
-            if 'Status' in df.columns:
-                print('Look at GCMT closed tab status col should not be there but is?')
-            else:
-                df['Status'] = 'Retired'
-            list_of_dfs.append(df)
-        else: 
-            print(tab)
-            wait_time = 5
-            time.sleep(wait_time)
-            gsheets = gspread_creds.open_by_key(key)
-            # Access a specific tab
-            # print(tab)
-            # input('review tab to diagnose error')
-            spreadsheet = gsheets.worksheet(tab)
+    else:
+        for tab in tab_list:
+            if tab == gcmt_closed_tab:
+                # print(tab)
+                wait_time = 5
+                time.sleep(wait_time)
+                gsheets = gspread_creds.open_by_key(key)
+                # Access a specific tab
+                spreadsheet = gsheets.worksheet(tab)
 
-            df = pd.DataFrame(spreadsheet.get_all_records(expected_headers=[]))
+                df = pd.DataFrame(spreadsheet.get_all_records(expected_headers=[]))
+                if 'Status' in df.columns:
+                    print('Look at GCMT closed tab status col should not be there but is?')
+                else:
+                    df['Status'] = 'Retired'
+                list_of_dfs.append(df)
+                
+            else: 
+                print(tab)
+                wait_time = 5
+                time.sleep(wait_time)
+                gsheets = gspread_creds.open_by_key(key)
+                # Access a specific tab
+                # print(tab)
+                # input('review tab to diagnose error')
+                spreadsheet = gsheets.worksheet(tab)
 
-            list_of_dfs.append(df)
-    if len(list_of_dfs) > 1: 
-        # df = pd.concat(list_of_dfs, sort=False).reset_index(drop=True).fillna('')
-        
-        df = pd.concat(list_of_dfs, sort=False).reset_index(drop=True)
+                df = pd.DataFrame(spreadsheet.get_all_records(expected_headers=[]))
+
+                list_of_dfs.append(df)
+        if len(list_of_dfs) > 1: 
+            # df = pd.concat(list_of_dfs, sort=False).reset_index(drop=True).fillna('')
+            
+            df = pd.concat(list_of_dfs, sort=False).reset_index(drop=True)
 
     return df
  
@@ -969,28 +984,37 @@ def process_goget_reserve_prod_data(main, prod):
     centroid_df = gspread_access_file_read_only(centroid_key, centroid_tab) # TODO update this with descriptive point on subregion
     # print(centroid_df.head())
     # input('check centroid df')
+    centroid_df.rename(columns={'Latitude':'Latitude-centroid', 'Longitude':'Longitude-centroid'},inplace=True)
     
     clean_export_center = pd.merge(clean_export, centroid_df, how='left', on='Country/Area')
 
-    # Fill in missing latitudes and longitudes
-    clean_export_center['Latitude_x'] = clean_export_center.apply(lambda row: row['Latitude_y'] if pd.isna(row['Latitude_x']) else row['Latitude_x'], axis=1)
-    clean_export_center['Longitude_x'] = clean_export_center.apply(lambda row: row['Longitude_y'] if pd.isna(row['Longitude_x']) else row['Longitude_x'], axis=1)
-
     # Update 'Location accuracy' for filled-in values
-    clean_export_center['Location accuracy'] = clean_export_center.apply(lambda row: 'country level only' if pd.isna(row['Latitude_x']) or pd.isna(row['Longitude_x']) else row['Location accuracy'], axis=1)
+    print(clean_export_center.columns)
+    clean_export_center['Location accuracy'] = clean_export_center.apply(lambda row: 'country level only' if pd.isna(row['Latitude']) or pd.isna(row['Longitude']) else row['Location accuracy'], axis=1)
+
+    # mask to check if merge fills in missing coordinates
+    empty_coord_mask = clean_export_center[clean_export_center['Latitude']=='']
+    print(f'How many missing coords before?: {len(empty_coord_mask)}')
+    
+    # Fill in missing latitudes and longitudes if lat lng is '' blank string
+    clean_export_center[['Latitude', 'Longitude']] = clean_export_center[['Latitude', 'Longitude']].fillna('')
+     
+    clean_export_center['Latitude'] = clean_export_center.apply(lambda row: row['Latitude-centroid'] if (row['Latitude'] == '') else row['Latitude'], axis=1)
+    clean_export_center['Longitude'] = clean_export_center.apply(lambda row: row['Longitude-centroid'] if (row['Longitude'] == '') else row['Longitude'], axis=1)
+
     #drop centroid fill in columns
-    clean_export_center_clean = clean_export_center.drop(['Latitude_y', 'Longitude_y'], axis=1)
+    clean_export_center_clean = clean_export_center.drop(['Latitude-centroid', 'Longitude-centroid'], axis=1)
     
-    
-    print(clean_export_center_clean.head())
+    # mask to check if merge fills in missing coordinates
+    empty_coord_mask = clean_export_center_clean[clean_export_center_clean['Latitude']=='']
+    print(f'How many missing coords after?: {len(empty_coord_mask)}')
+    input('Check before and after for empty coord logic!')
     
     # Define a dictionary with old column names as keys and new names with units as values
     column_rename_map = {
         'Production - Oil': 'Production - Oil (Million bbl/y)',
         'Production - Gas': 'Production - Gas (Million m³/y)',
         'Production - Total (Oil, Gas and Hydrocarbons)': 'Production - Total (Oil, Gas and Hydrocarbons) (Million boe/y)',
-        'Latitude_x': 'Latitude',
-        'Longitude_x': 'Longitude',
         # Add other columns you wish to rename similarly here
     }
     
@@ -1100,6 +1124,22 @@ def get_country_list(gem_name):
 
 # end of Scott's script 
 
+def find_most_granular_loc(df):
+    '''This will find the most granular location for each row so we can find the best coordinates 
+    for the project. For now we will just use the country as the most granular polygon. In the future
+    we will make it more robust.'''
+    
+    # gadm file of all country and province polygon geometries
+    # convert all gem data to align with country and province spelling
+    
+    return df
+
+def apply_representative_point(df):
+    '''This will apply representative point function to all rows that have missing coordinates'''
+    polygon_name_loc = find_most_granular_loc(df)
+    
+    
+    return df
 
 def pci_eu_map_read(gdf):
     # take columns PCI5 and PCI6 
@@ -1143,10 +1183,11 @@ def format_values(df):
     and create display capacity field as string to hide nan"""
     
     df['status'] = df['status'].apply(lambda x: x.lower())
+    df['status'] = df['status'].replace(' ', '_')
     
     # df[['start-year', 'retired-year', 'owner', 'parent-port-name']] = df[['start-year', 'retired-year',  'owner', 'parent-port-name']].replace('-', '', regex=True)
         
-    df['capacity-mt-display'] = df['capacity-(mt)'].fillna('').replace('*', '')
+    # df['capacity-mt-display'] = df['capacity-(mt)'].fillna('').replace('*', '')
 
     return df
 
@@ -1322,21 +1363,28 @@ def create_filtered_df_list_by_map(trackerdf, col_country_name, col_reg_name, ma
 
         if tracker == 'GOGET':
             # using this just to filter from columns not in map file but in official release
-            goget_orig_file = '/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/testing/source/Global Oil and Gas Extraction Tracker - 2024-03-08_1205 DATA TEAM COPY.xlsx'
+            # goget_orig_file = '/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/testing/source/Global Oil and Gas Extraction Tracker - 2024-03-08_1205 DATA TEAM COPY.xlsx'
 
-            # filter out oil
-            list_ids = handle_goget_gas_only_workaround(goget_orig_file)
+            # # filter out oil
+            # list_ids = handle_goget_gas_only_workaround(goget_orig_file)
             # print(len(ndf)) # 3095 will be less because not all trackers
             # filter = (df['tracker-acro']=='GOGET') & (df['prod-gas']=='') #2788
             # filter = df['id'] in list_ids #2788
             # df = df[(df['tracker-acro']=='GOGET') & (df['id'] in list_ids)]
             drop_row = []
+            print(filtered_df.columns)
             for row in filtered_df.index:
                 # if df.loc[row, 'tracker-acro'] == 'GOGET':
-                if filtered_df.loc[row, 'Unit ID'] not in list_ids:
+                # if filtered_df.loc[row, 'Unit ID'] not in list_ids:
+                #     drop_row.append(row)
+                
+                if filtered_df.loc[row, 'Fuel type'] == 'oil':
                     drop_row.append(row)
             # drop all rows from df that are goget and not in the gas list ids 
-            filtered_df.drop(drop_row, inplace=True)           
+            print(f'Length of goget before oil drop: {len(filtered_df)}')
+            filtered_df.drop(drop_row, inplace=True)        
+            print(f'Length of goget after oil drop: {len(filtered_df)}')
+            input('Check the above to see if gas only!')
             # print(len(ndf)) # 3012 after removing goget 
         elif tracker in ['GGIT-eu', 'GGIT']:
             # filter for hydrogen only, but also gas for pci europe uses this instead of other release
@@ -1645,6 +1693,18 @@ def fix_status_inferred(df):
     #         df.loc[row, 'status'] = 'shelved'
     
     # print(f"Statuses after: {set(df['status'].to_list())}")
+
+    return df
+
+def fix_status_space(df):
+    import logging
+
+    # input('check all status options')
+    df['status'] = df['status'].replace('in development', 'in_development')
+    df['status'] = df['status'].replace('shut in','shut_in')
+    print(set(df['status'].to_list()))
+    logging.basicConfig(level=logging.INFO)
+    logging.info(set(df['status'].to_list()))
 
     return df
 

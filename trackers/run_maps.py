@@ -27,6 +27,8 @@ for tracker in tqdm(trackers_to_update, desc='Baking'):
         # result will be data ready for map, after scott's code
         df = process_goget_reserve_prod_data(main, prod)
         df = rename_cols(df) # will need to adjust for goget's columns
+        df = fix_status_space(df)   
+        # df = format_values(df)
         df = fix_status_inferred(df)         
         df = filter_cols(df,final_cols=['country/area', 'wiki-name',
                                         'status', 'production-start-year',  
@@ -41,7 +43,9 @@ for tracker in tqdm(trackers_to_update, desc='Baking'):
         # creates multi-map files 
         print('DONE MAKING GOGET SINGLE MAP onto MULTI MAPS')
         input('continue?')
-        
+        # creates multi-tracker maps
+        subprocess.run(["python", "/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/gem-tracker-maps/trackers/multi_tracker_maps_script.py"])                 
+                  
     elif tracker == 'Bioenergy':
 
         test_results_folder = '/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/gem-tracker-maps/trackers/bioenergy/test_results/'

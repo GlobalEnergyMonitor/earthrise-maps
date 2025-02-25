@@ -14,7 +14,7 @@ test_results_folder = './test_results/'
 testing_folder = '/Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/testing/final/'
 # /Users/gem-tah/GEM_INFO/GEM_WORK/earthrise-maps/testing/final
 output_folder = './compilation_output/'
-input_file_csv = 'compilation_input/Global Integrated Power January 2025.xlsx'#'compilation_input/Global Integrated Power August 2024 DATA TEAM COPY.xlsx'
+input_file_csv = 'compilation_input/Global Integrated Power February 2025 update II DATA TEAM COPY.xlsx'#'compilation_input/Global Integrated Power August 2024 DATA TEAM COPY.xlsx'
 
 
 

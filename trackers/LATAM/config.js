@@ -1,5 +1,5 @@
 var config = {
-    json: 'compilation_output/latam_2025-02-14.geojson',
+    json: 'compilation_output/latam_2025-02-24.geojson',
     geometries: ['Point','LineString'],
     center: [-90, -14],
     zoomFactor: 1.7,
